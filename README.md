@@ -6,13 +6,13 @@ dependencyResolutionManagement {
 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 		repositories {
 			mavenCentral()
-			maven { url 'https://jitpack.io' }
+			maven { url = uri("https://jitpack.io") }
 		}
 	}
 ```
  > Step 2. Add the dependency
 ```gradle
 dependencies {
-	        implementation 'com.github.Rafaqat-Mehmood:AdsLibrary:Tag'
+	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.0.0")
 	}
 ```
