@@ -1,3 +1,5 @@
+[![](https://jitpack.io/v/Rafaqat-Mehmood/AdsLibrary.svg)](https://jitpack.io/#Rafaqat-Mehmood/AdsLibrary)
+
 > Step 1. Add the JitPack repository to your build file
 Add it in your root settings.gradle at the end of repositories:
 
