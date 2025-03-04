@@ -40,4 +40,14 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation (libs.glide)
+    implementation (libs.facebook.shimmer)
+    implementation(libs.sdp.android)
+    implementation(libs.ssp.android)
+
+    implementation(libs.play.services.ads)
+    implementation(libs.billing.ktx)
+    implementation(libs.gson)
+    implementation(libs.converter.gson)
 }
