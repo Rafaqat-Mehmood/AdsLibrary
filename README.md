@@ -1,6 +1,5 @@
 > Step 1. Add the JitPack repository to your build file
 Add it in your root settings.gradle at the end of repositories:
-[![](https://jitpack.io/v/Rafaqat-Mehmood/AdsLibrary.svg)](https://jitpack.io/#Rafaqat-Mehmood/AdsLibrary)
 
 ```gradle
 dependencyResolutionManagement {
@@ -14,6 +13,6 @@ dependencyResolutionManagement {
  > Step 2. Add the dependency
 ```gradle
 dependencies {
-	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.0.0")
+	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.0")
 	}
 ```
