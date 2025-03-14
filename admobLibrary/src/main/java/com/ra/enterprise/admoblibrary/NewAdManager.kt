@@ -1,17 +1,38 @@
 package com.ra.enterprise.admoblibrary
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.os.Build
+import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
+import com.facebook.shimmer.ShimmerFrameLayout
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.nativead.MediaView
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdView
 
 
 /**
@@ -19,15 +40,17 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
  * Whatsapp       : 0310-1025532
  * Designation    : Sr.Android Developer
  */
+@SuppressLint("StaticFieldLeak")
 object NewAdManager {
-    var mainInterstitialAd: InterstitialAd? = null
-    var mainCount = 0L
-    var mInterstitialAd: InterstitialAd? = null
+    private var mainInterstitialAd: InterstitialAd? = null
+    private var mainCount = 0L
+    private var mInterstitialAd: InterstitialAd? = null
     private var dialog: Dialog? = null
-
-
-//    lateinit var adView: AdView
-//    private lateinit var adSize: AdSize
+    private lateinit var shimmerContainer: ShimmerFrameLayout
+//    private  var adaptiveBannerFrame:FrameLayout?=null
+    private  lateinit var adaptiveBannerFrame:FrameLayout
+    private lateinit var adView: AdView
+    private lateinit var adSize: AdSize
 //    private var nativeAd: NativeAd? = null
 
     var adCloseOrNot = false
@@ -35,16 +58,6 @@ object NewAdManager {
     var mainAdIsLoaded = false
 
 //    private var mNativeAd: NativeAd? = null
-
-
-
-//    private var callBack: ProgressCallBack? = null
-
-    var limitCounter = 0
-
-//    fun setCall(callBack: ProgressCallBack) {
-//        NewAdManager.callBack = callBack
-//    }
 
 
     //Step 1: Initialize Ads
@@ -94,23 +107,27 @@ object NewAdManager {
                     mainInterstitialAd = interstitialAd
                     currentSessionAdCount++ // Modify the mutable copy
 
-                    Log.e("TAG", "onAdLoaded: Ad is ready." + mainCount + "---" + currentSessionAdCount + "---" + remoteXValue)
+                    Log.e(
+                        "TAG",
+                        "onAdLoaded: Ad is ready." + mainCount + "---" + currentSessionAdCount + "---" + remoteXValue
+                    )
 
                     loadingDialog.dismiss()
                     mainInterstitialAd!!.show(context)
-                    mainInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
-                        override fun onAdDismissedFullScreenContent() {
-                            Log.i("TAG", "Ad dismissed. Refreshing ad.")
-                            mainInterstitialAd = null
-                            onAdDismissed()
-                        }
+                    mainInterstitialAd?.fullScreenContentCallback =
+                        object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                Log.i("TAG", "Ad dismissed. Refreshing ad.")
+                                mainInterstitialAd = null
+                                onAdDismissed()
+                            }
 
-                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                            Log.e("TAG", "Ad failed to show: ${adError.message}")
-                            mainInterstitialAd = null
-                            onAdDismissed()
+                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                Log.e("TAG", "Ad failed to show: ${adError.message}")
+                                mainInterstitialAd = null
+                                onAdDismissed()
+                            }
                         }
-                    }
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
@@ -131,7 +148,7 @@ object NewAdManager {
 
 
     //Step 3: Just Interstitial Ad Load Method if loaded then show
-    fun interLoad(context: Activity, id: String,onAdDismissed: () -> Unit) {
+    fun interLoad(context: Activity, id: String, onAdDismissed: () -> Unit) {
         try {
             dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
             dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -148,7 +165,7 @@ object NewAdManager {
                             super.onAdLoaded(interstitialAd)
                             mInterstitialAd = interstitialAd
                             dialog!!.dismiss()
-                            showInter(context,onAdDismissed)
+                            showInter(context, onAdDismissed)
                             Log.e("TAG", "Interstitial Ad Loaded: ")
 
                         }
@@ -167,7 +184,7 @@ object NewAdManager {
                 Log.i("TAG", "Already-Splash-Inter-Loaded: ")
             }
 
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -187,7 +204,7 @@ object NewAdManager {
                             dialog!!.dismiss()
                             onAdDismissed()
 
-                            }
+                        }
 
                         override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                             super.onAdFailedToShowFullScreenContent(p0)
@@ -196,346 +213,330 @@ object NewAdManager {
                             onAdDismissed()
 
                         }
-                        }
-
-
-
-
-
                     }
+
+
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
 
-//    fun loadSmallBanner(activity: Activity, linearLayout: LinearLayout,id: String) {
-//        adView = AdView(activity)
-//        (adView).let { validAdView ->
-//            validAdView.adUnitId = id
-//            linearLayout.removeAllViews()
-//            linearLayout.addView(validAdView)
-//            val adSize = getAdSize(activity, linearLayout)
-//            validAdView.setAdSize(adSize)
-//            val adRequest = AdRequest.Builder().build()
-//            validAdView.loadAd(adRequest)
-//            validAdView.adListener = object : AdListener() {
-//                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                    super.onAdFailedToLoad(loadAdError)
-//                    Log.i("BannerAd", "Failed Banner: ${loadAdError.message}")
-//                    linearLayout.visibility = View.GONE
-//                }
-//
-//                override fun onAdLoaded() {
-//                    super.onAdLoaded()
-//                    linearLayout.visibility = View.VISIBLE
-//                    Log.i("BannerAd", "AdLoad")
-//
-//                }
-//
-//            }
-//        }
-//
-//
-//    }
-//    fun loadOnboardSmallBanner(activity: Activity, linearLayout: LinearLayout,id: String,callBack:(Boolean)->Unit) {
-//        adView = AdView(activity)
-//        (adView).let { validAdView ->
-//            validAdView.adUnitId = id
-//            linearLayout.removeAllViews()
-//            linearLayout.addView(validAdView)
-//            val adSize = getAdSize(activity, linearLayout)
-//            validAdView.setAdSize(adSize)
-//            val adRequest = AdRequest.Builder().build()
-//            validAdView.loadAd(adRequest)
-//            validAdView.adListener = object : AdListener() {
-//                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                    super.onAdFailedToLoad(loadAdError)
-//                    Log.i("BannerAd", "Failed Banner: ${loadAdError.message}")
-////                    linearLayout.visibility = View.GONE
-//                    callBack(false)
-//                }
-//
-//                override fun onAdLoaded() {
-//                    super.onAdLoaded()
-////                    linearLayout.visibility = View.VISIBLE
-//                    Log.i("BannerAd", "AdLoad")
-//                    callBack(true)
-//
-//
-//                }
-//
-//            }
-//        }
-//
-//
-//    }
-//
+    //Step 4: Load Small Banner
+    @SuppressLint("StaticFieldLeak")
+    fun loadAndShowSmallBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+
+        // Inflate the library layout manually
+//        val adViewLayout = activity.layoutInflater.inflate(R.layout.banner_container_top, null)
+        // Find views from the inflated layout
+        shimmerContainer = adViewLayout.findViewById(R.id.shimmer_view_container)
+        adaptiveBannerFrame = adViewLayout.findViewById(R.id.adaptive_banner_frame)
 
 
 
-
-//    private fun getAdSize(activity: Activity, linearLayout: LinearLayout): AdSize {
-//        return try {
-//            // Determine the ad container's width in pixels.
-//            val adWidthPixels: Int = if (linearLayout.width > 0) {
-//                // Use the measured width of the layout if it's available.
-//                linearLayout.width
-//            } else {
-//                // Fallback: Retrieve the screen width using the best available API.
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                    // For API 30+ use the WindowMetrics API.
-//                    val windowMetrics = activity.windowManager.currentWindowMetrics
-//                    val insets = windowMetrics.windowInsets
-//                        .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-//                    // Subtract the insets (e.g., status and navigation bars) from the total width.
-//                    windowMetrics.bounds.width() - insets.left - insets.right
-//                } else {
-//                    // For older APIs, use the legacy DisplayMetrics approach.
-//                    @Suppress("DEPRECATION")
-//                    val displayMetrics = DisplayMetrics()
-//                    @Suppress("DEPRECATION")
-//                    activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
-//                    displayMetrics.widthPixels
-//                }
-//            }
-//
-//            // Convert the width from pixels to dp (density-independent pixels) using the resources' metrics.
-//            val density = activity.resources.displayMetrics.density
-//            val adWidth = (adWidthPixels / density).toInt()
-//
-//            // Return an adaptive banner ad size based on the current orientation.
-//            AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
-//        } catch (e: Exception) {
-//            Log.e("TAG", "Error in getAdSize: ${e.message}", e)
-//            // Return a default ad size as a fallback.
-//            AdSize.BANNER
-//        }
-//    }
-//
-//
-//
-//
-//    fun showBannerMediumAd(context: Context, bannerAd: LinearLayout, check: String) {
-//        bannerAd.removeAllViews()
-//        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
-//        val displayMetrics = context.resources.displayMetrics
-//        val adWidthPixels =
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                val windowMetrics: WindowMetrics = windowManager!!.currentWindowMetrics
-//                windowMetrics.bounds.width()
-//            } else {
-//                displayMetrics.widthPixels
-//            }
-//        val density = displayMetrics.density
-//        val width = (adWidthPixels / density).toInt()
-//        adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, width)
-//        adView = AdView(context)
-//        bannerAd.addView(adView)
-//        adView.adListener = object : AdListener() {
-//            override fun onAdLoaded() {
-//                // Code to be executed when an ad finishes loading.
-//                bannerAd.visibility = View.VISIBLE
-//
-//            }
-//
-//            override fun onAdFailedToLoad(p0: LoadAdError) {
-//                super.onAdFailedToLoad(p0)
-//                Log.d("bannerAd", "$p0")
-//                bannerAd.visibility = View.INVISIBLE
-//            }
-//
-//            override fun onAdOpened() {
-//            }
-//
-//
-//            override fun onAdClosed() {
-//            }
-//        }
-//
-//        loadBannerMedium(check)
-//
-//    }
-//
-//    private fun loadBannerMedium(check: String) {
-//        if (App.remoteModel != null) {
-//            adView.setAdSize(AdSize.MEDIUM_RECTANGLE)
-//            if (check == "2_4" && App.remoteModel!!.multiplePhoto24RectangleBanner.showAd) {
-//                adView.adUnitId = App.remoteModel!!.multiplePhoto24RectangleBanner.adID
-//
-//            }
-////            else if (check == "3_4" && App.remoteModel!!.pairedScreenBannerRectangle.showAd) {
-////                adView.adUnitId = App.remoteModel!!.pairedScreenBannerRectangle.adID
-////            }
-////            else if (check == "ScanSubScreen" && App.remoteModel!!.scanSubScreenBannerRectangle.showAd) {
-////                adView.adUnitId = App.remoteModel!!.scanSubScreenBannerRectangle.adID
-////            }
-//
-//
-//
-//
-//            val adRequest = AdRequest.Builder().build()
-//            adView.loadAd(adRequest)
-//        }
-//
-//    }
-//
-//    fun showCollapsibleAd(context: Context, bannerAd: LinearLayout, check: String) {
-//        bannerAd.removeAllViews()
-//        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
-//        val displayMetrics = context.resources.displayMetrics
-//        val adWidthPixels =
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                val windowMetrics: WindowMetrics = windowManager!!.currentWindowMetrics
-//                windowMetrics.bounds.width()
-//            } else {
-//                displayMetrics.widthPixels
-//            }
-//        val density = displayMetrics.density
-//        val width = (adWidthPixels / density).toInt()
-//        adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, width)
-//        adView = AdView(context)
-//        bannerAd.addView(adView)
-//        adView.adListener = object : AdListener() {
-//            override fun onAdLoaded() {
-//                // Code to be executed when an ad finishes loading
-//                bannerAd.visibility = View.VISIBLE
-//
-//            }
-//
-//            override fun onAdFailedToLoad(p0: LoadAdError) {
-//                super.onAdFailedToLoad(p0)
-//                Log.d("bannerAd", "$p0")
-//                bannerAd.visibility = View.INVISIBLE
-//            }
-//
-//            override fun onAdOpened() {
-//                Log.i("TAG", "open: ")
-//                adCloseOrNot = true
-//
-//            }
-//
-//
-//            override fun onAdClosed() {
-//                Log.i("TAG", "onAdClosed: ")
-//                adCloseOrNot = false
-//
-//            }
-//        }
-//
-//        loadCollapsible(check)
-//
-//    }
-//
-//    private fun loadCollapsible(check: String) {
-//        if (App.remoteModel != null) {
-//
-//            adView.setAdSize(adSize)
-//            if (check == "PrintLabel" && App.remoteModel!!.printLabelCollapsibleBanner.showAd) {
-//                adView.adUnitId = App.remoteModel!!.printLabelCollapsibleBanner.adID
-//            } else if (check == "MultiplePhoto" && App.remoteModel!!.multiplePhotoDashboardCollapsibleBanner.showAd) {
-//                adView.adUnitId = App.remoteModel!!.multiplePhotoDashboardCollapsibleBanner.adID
-//            } else if (check == "PrintCalendar" && App.remoteModel!!.printCalendarCollapsibleBanner.showAd) {
-//                adView.adUnitId = App.remoteModel!!.printCalendarCollapsibleBanner.adID
-//            }
-//            else if (check == "MultiplePhoto68" && App.remoteModel!!.multiplePhoto68CollapsibleBanner.showAd) {
-//                adView.adUnitId = App.remoteModel!!.multiplePhoto68CollapsibleBanner.adID
-//            }
-//
-//
-//
-//            val extras = Bundle()
-//            extras.putString("collapsible", "bottom")
-//            val adRequest = AdRequest.Builder()
-//                .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
-//                .build()
-//            adView.loadAd(adRequest)
-//        }
-//
-//
-//    }
+        adView = AdView(activity).apply {
+            adUnitId = id
+        }
 
 
-//    fun loadMainAdmobInterstitialAds(context2: Context,id: String) {
-//        if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-//
-//                if (mainInterstitialAd == null && !mainAdIsLoaded) {
-//                    val adRequest = AdRequest.Builder().build()
-//                    InterstitialAd.load(
-//                        context2, id, adRequest,
-//                        object : InterstitialAdLoadCallback() {
-//                            override fun onAdLoaded(interstitialAd: InterstitialAd) {
-//                                super.onAdLoaded(interstitialAd)
-//                                mainInterstitialAd = interstitialAd
-//                                mainAdIsLoaded =true
-//                                Log.i("TAG", "Main-onAdLoaded: ")
-//
-//                            }
-//
-//                            override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                                super.onAdFailedToLoad(loadAdError)
-//                                mainInterstitialAd = null
-//                                mainAdIsLoaded =false
-//                                Log.i("TAG", "Main-Fail: " + loadAdError.message)
-//
-//                            }
-//                        })
-//                }
-//            else
-//                {
-//                    mainAdIsLoaded =true
-//                    Log.i("TAG", "Else-Already-Main-onAdLoaded: ")
-//
-//                }
-//
-//        }
-//
-//
-//    }
+        adaptiveBannerFrame.addView(adView)
 
-//    fun loadMainAdmobInterstitialAds(context2: Context, id: String) {
-//        val maxAdLoadLimit =3
-//
-//        // Check if the ad loading limit has been reached
-//        if (perSessionAdCount >= maxAdLoadLimit) {
-//            Log.i("TAG", "Ad loading limit reached for this session.")
-//            return
-//        }
-//
-//        if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-//            if (mainInterstitialAd == null && !mainAdIsLoaded) {
-//                val adRequest = AdRequest.Builder().build()
-//                InterstitialAd.load(
-//                    context2, id, adRequest,
-//                    object : InterstitialAdLoadCallback() {
-//                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-//                            super.onAdLoaded(interstitialAd)
-//                            mainInterstitialAd = interstitialAd
-//                            mainAdIsLoaded = true
-//                            Log.i("TAG", "Main-onAdLoaded: ")
-//
-//                            // Increment and save the ad load count
-////                            sharedPreferences.edit()
-////                                .putInt("AdLoadCount", currentAdLoadCount + 1)
-////                                .apply()
-//                            perSessionAdCount++
-//                        }
-//
-//                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                            super.onAdFailedToLoad(loadAdError)
-//                            mainInterstitialAd = null
-//                            mainAdIsLoaded = false
-//                            Log.i("TAG", "Main-Fail: " + loadAdError.message)
-//                        }
-//                    }
-//                )
-//            } else {
-//                mainAdIsLoaded = true
-//                Log.i("TAG", "Else-Already-Main-onAdLoaded: ")
-//            }
-//        }
-//    }
+        val adRequest: AdRequest = AdRequest.Builder().build()
+        adSize = getAdSize(activity, adaptiveBannerFrame)
 
+        adView.setAdSize(adSize)
+        adView.loadAd(adRequest)
+
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+            }
+
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+            }
+        }
+
+        // Add the inflated layout to the activity's root view
+//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    fun loadAndShowMediumBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+        // Inflate the appropriate layout
+//        val adViewLayout =  activity.layoutInflater.inflate(R.layout.banner_rectangle_container_top, null)
+
+        // Find views
+        val shimmerContainer = adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // Create and configure AdView
+        adView = AdView(activity).apply {
+            adUnitId = id
+            setAdSize(AdSize.MEDIUM_RECTANGLE) // Adjust size if needed
+        }
+
+        // Add AdView to container
+        bannerAdFrame.addView(adView)
+
+        // Load Ad
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+                bannerAdFrame.visibility = View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+                Log.d("bannerAd", "Failed to load banner ad: $p0")
+            }
+        }
+
+        // Attach the inflated view to the root of the activity
+//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    fun loadAndShowLargeBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+        // Inflate the appropriate layout
+//        val adViewLayout =activity.layoutInflater.inflate(
+//                R.layout.large_banner_container_top,
+//                null)
+
+
+        // Find views
+        val shimmerContainer =adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // Create and configure AdView
+        adView = AdView(activity).apply {
+            adUnitId = id
+            setAdSize(AdSize.LARGE_BANNER) // Adjust size if needed
+        }
+
+        // Add AdView to container
+        bannerAdFrame.addView(adView)
+
+        // Load Ad
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+                bannerAdFrame.visibility = View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+                Log.d("bannerAd", "Failed to load banner ad: $p0")
+            }
+        }
+
+        // Attach the inflated view to the root of the activity
+//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    fun loadAndShowCollapsibleAd(activity: Activity, adViewLayout:ViewGroup,openAd:String,id: String) {
+        // Inflate the appropriate layout
+//        var adViewLayout=activity.layoutInflater.inflate(R.layout.banner_container, null)
+
+
+        // Find views
+        val shimmerContainer = adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // Get screen width in dp
+        val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
+        val displayMetrics = activity.resources.displayMetrics
+        val adWidthPixels = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowManager!!.currentWindowMetrics.bounds.width()
+        } else {
+            displayMetrics.widthPixels
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+
+        // Set AdSize dynamically
+        val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+
+        // Create and configure AdView
+        val adView = AdView(activity).apply {
+            setAdSize(adSize)
+            adUnitId = id
+            adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    shimmerContainer.stopShimmer()
+                    shimmerContainer.visibility = View.GONE
+                    bannerAdFrame.visibility = View.VISIBLE
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    shimmerContainer.stopShimmer()
+                    shimmerContainer.visibility = View.GONE
+                    Log.e("bannerAd", "Failed to load collapsible ad: ${error.message}")
+                }
+            }
+        }
+
+        // Add AdView to container
+        bannerAdFrame.addView(adView)
+
+        // Load Ad with extra parameters
+        val extras = Bundle().apply {
+            putString("collapsible", openAd)
+        }
+
+        val adRequest = AdRequest.Builder()
+            .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+            .build()
+
+        adView.loadAd(adRequest)
+
+        // Attach the inflated view to the root of the activity
+//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private fun getAdSize(activity: Activity, bannerAd: FrameLayout): AdSize {
+        return try {
+            // Determine the ad container's width in pixels.
+            val adWidthPixels: Int = if (bannerAd.width > 0) {
+                // Use the measured width of the layout if it's available.
+                bannerAd.width
+            } else {
+                // Fallback: Retrieve the screen width using the best available API.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    // For API 30+ use the WindowMetrics API.
+                    val windowMetrics = activity.windowManager.currentWindowMetrics
+                    val insets = windowMetrics.windowInsets
+                        .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+                    // Subtract the insets (e.g., status and navigation bars) from the total width.
+                    windowMetrics.bounds.width() - insets.left - insets.right
+                } else {
+                    // For older APIs, use the legacy DisplayMetrics approach.
+                    @Suppress("DEPRECATION")
+                    val displayMetrics = DisplayMetrics()
+                    @Suppress("DEPRECATION")
+                    activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+                    displayMetrics.widthPixels
+                }
+            }
+
+            // Convert the width from pixels to dp (density-independent pixels) using the resources' metrics.
+            val density = activity.resources.displayMetrics.density
+            val adWidth = (adWidthPixels / density).toInt()
+
+            // Return an adaptive banner ad size based on the current orientation.
+            AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+        } catch (e: Exception) {
+            Log.e("TAG", "Error in getAdSize: ${e.message}", e)
+            // Return a default ad size as a fallback.
+            AdSize.BANNER
+        }
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    fun loadAndShowNativeAd(activity: Activity,adContainer:ViewGroup, id: String) {
+        // Inflate the appropriate layout
+//        val adContainer = activity.layoutInflater.inflate(
+//                R.layout.native_container_small_media,
+//                null
+//            )
+
+
+        // Find views
+        val shimmerContainer = adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val nativeAdFrame = adContainer.findViewById<FrameLayout>(R.id.nativeAd)
+
+        // Start shimmer animation
+        shimmerContainer.startShimmer()
+
+        // Create AdLoader
+        val adLoader = AdLoader.Builder(activity, id)
+            .forNativeAd { nativeAd ->
+                // Inflate native ad layout
+                val nativeAdView = activity.layoutInflater.inflate(R.layout.native_ad_small_media_layout, null) as NativeAdView
+
+
+
+                // Populate native ad
+                populateNativeAdView(nativeAd, nativeAdView)
+
+                // Remove previous views and add new native ad
+                nativeAdFrame.removeAllViews()
+                nativeAdFrame.addView(nativeAdView)
+
+                // Handle shimmer
+                shimmerContainer.stopShimmer()
+                shimmerContainer.visibility = View.GONE
+                nativeAdFrame.visibility = View.VISIBLE
+            }
+            .withAdListener(object : AdListener() {
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    // Handle error
+                    shimmerContainer.stopShimmer()
+                    shimmerContainer.visibility = View.GONE
+                    nativeAdFrame.visibility = View.GONE
+                    Log.d("NativeAd", "Failed to load native ad: $error")
+                }
+            })
+            .build()
+
+        // Load the ad
+        adLoader.loadAd(AdRequest.Builder().build())
+
+        // Add container to activity root view
+//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adContainer)
+    }
+
+    private fun populateNativeAdView(nativeAd: NativeAd, nativeAdView: NativeAdView) {
+        // Set media view
+        val mediaView = nativeAdView.findViewById<MediaView>(R.id.nativeMedia)
+        nativeAdView.mediaView = mediaView
+
+        // Set other views
+        nativeAdView.headlineView = nativeAdView.findViewById(R.id.nativeHeadline)
+        nativeAdView.bodyView = nativeAdView.findViewById(R.id.nativeBody)
+        nativeAdView.callToActionView = nativeAdView.findViewById(R.id.nativeAction)
+        nativeAdView.iconView = nativeAdView.findViewById(R.id.nativeIcon)
+        nativeAdView.priceView = nativeAdView.findViewById(R.id.nativePrice)
+        nativeAdView.advertiserView = nativeAdView.findViewById(R.id.nativeAdvertiser)
+        nativeAdView.storeView = nativeAdView.findViewById(R.id.nativeStore)
+
+        // Populate text
+        (nativeAdView.headlineView as TextView).text = nativeAd.headline
+        (nativeAdView.bodyView as TextView).text = nativeAd.body ?: ""
+        (nativeAdView.callToActionView as Button).text = nativeAd.callToAction ?: ""
+
+        // Handle optional fields
+        if (nativeAd.icon != null) {
+            (nativeAdView.iconView as ImageView).setImageDrawable(nativeAd.icon?.drawable)
+        } else {
+            nativeAdView.iconView?.visibility = View.GONE
+        }
+
+        // Set other optional fields similarly...
+
+        // Register native ad
+        nativeAdView.setNativeAd(nativeAd)
+    }
 
 //    fun loadNative(context: Context, adContainer: TemplateView, advertisingArea: View, id: String) {
 //
@@ -575,7 +576,6 @@ object NewAdManager {
 //    }
 
 
-
 //    fun destroyNativeAd() {
 //        if (nativeAd !=null) {
 //            nativeAd!!.destroy()
@@ -586,63 +586,6 @@ object NewAdManager {
     fun resetMainCount() {
         mainCount = 0L
     }
-
-
-
-//    fun showInter(
-//        context: Activity,
-//        adDismissCall: Boolean,
-//        event: String,
-//        callbackMethod: Callable<Void>
-//    ) {
-//        // Check if ad count has reached the session limit
-//        if (sessionAdCount >= MAX_ADS_PER_SESSION) {
-//            Log.i("TAG", "Ad limit reached for this session.")
-//            callbackMethod.call()
-//            return
-//        }
-//
-//        if (mainInterstitialAd != null) {
-//            mainInterstitialAd!!.show(context)
-//            mainInterstitialAd!!.fullScreenContentCallback =
-//                object : FullScreenContentCallback() {
-//                    override fun onAdDismissedFullScreenContent() {
-//                        mainInterstitialAd = null
-//                        sessionAdCount++ // Increment ad count
-//
-//                        if (sessionAdCount >= MAX_ADS_PER_SESSION) {
-//                            Log.i("TAG", "Ad limit reached for this session So Request Not Send.")
-//                        }
-//                        else {
-//                            if (adDismissCall) {
-////                                if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-////                                    loadAdmobInterstitialAds(context)
-////                                }
-//                            }
-//                            callbackMethod.call()
-//                        }
-//                    }
-//
-//                    override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-//                        super.onAdFailedToShowFullScreenContent(p0)
-//                        callbackMethod.call()
-//                    }
-//
-//                    override fun onAdImpression() {
-//                        super.onAdImpression()
-//                    }
-//                }
-//        } else {
-//            callbackMethod.call()
-//            if (adDismissCall) {
-////                if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-////                    loadAdmobInterstitialAds(context)
-////                }
-//                Log.i("TAG", "showInter------: Ad not ready.")
-//            }
-//        }
-//    }
-
 
     //PreLoad
 //    fun loadAdmobInterstitialAds(context2: Context) {
@@ -676,41 +619,7 @@ object NewAdManager {
 //        }
 //    }
 
-    //OnTheSpotLoadForPro Screen
-//    fun loadAdmobInterstitialAds(context2: Context) {
-//        if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-//            if (mainInterstitialAd == null && !isSendRequest) {
-//                val adRequest = AdRequest.Builder().build()
-//                InterstitialAd.load(
-//                    context2, App.remoteModel!!.mainScreenInter.adID, adRequest,
-//                    object : InterstitialAdLoadCallback() {
-//                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-//                            super.onAdLoaded(interstitialAd)
-//                            mainInterstitialAd = interstitialAd
-//                            isSendRequest =false
-//                            Log.e("TAG", "onAdLoaded: Ad is ready.")
-//                        }
-//
-//                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                            super.onAdFailedToLoad(loadAdError)
-//                            mainInterstitialAd = null
-//                            isSendRequest =false
-//                            Log.e("TAG", "Failed Interstitial: " + loadAdError.message)
-//                        }
-//                    })
-//                isSendRequest =true
-//                Log.i("TAG", "Main-Inter-Loaded: Request sent.")
-//            }
-//            else
-//            {
-//                Log.i("TAG", "Main-Inter-Already-Loaded: ")
-//            }
-//        }
-//    }
 
-//
-//
-//
 //    fun loadNative(activity: Activity, frameLayout: FrameLayout, adId: String) {
 //        if (activity.checkForInternet() && !SplashAct.purchaseSuccessfull) {
 //            val adLoader = AdLoader.Builder(activity, adId)
