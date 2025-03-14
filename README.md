@@ -15,6 +15,6 @@ dependencyResolutionManagement {
  > Step 2. Add the dependency
 ```gradle
 dependencies {
-	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.0")
+	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:Tag")
 	}
 ```
