@@ -227,8 +227,6 @@ object NewAdManager {
     @SuppressLint("StaticFieldLeak")
     fun loadAndShowSmallBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
 
-        // Inflate the library layout manually
-//        val adViewLayout = activity.layoutInflater.inflate(R.layout.banner_container_top, null)
         // Find views from the inflated layout
         shimmerContainer = adViewLayout.findViewById(R.id.shimmer_view_container)
         adaptiveBannerFrame = adViewLayout.findViewById(R.id.adaptive_banner_frame)
@@ -261,14 +259,11 @@ object NewAdManager {
             }
         }
 
-        // Add the inflated layout to the activity's root view
-//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+
     }
 
     @SuppressLint("StaticFieldLeak")
     fun loadAndShowMediumBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
-        // Inflate the appropriate layout
-//        val adViewLayout =  activity.layoutInflater.inflate(R.layout.banner_rectangle_container_top, null)
 
         // Find views
         val shimmerContainer = adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
@@ -302,17 +297,11 @@ object NewAdManager {
             }
         }
 
-        // Attach the inflated view to the root of the activity
-//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+
     }
 
     @SuppressLint("StaticFieldLeak")
     fun loadAndShowLargeBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
-        // Inflate the appropriate layout
-//        val adViewLayout =activity.layoutInflater.inflate(
-//                R.layout.large_banner_container_top,
-//                null)
-
 
         // Find views
         val shimmerContainer =adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
@@ -346,15 +335,12 @@ object NewAdManager {
             }
         }
 
-        // Attach the inflated view to the root of the activity
-//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+
     }
 
 
     @SuppressLint("StaticFieldLeak")
     fun loadAndShowCollapsibleAd(activity: Activity, adViewLayout:ViewGroup,openAd:String,id: String) {
-        // Inflate the appropriate layout
-//        var adViewLayout=activity.layoutInflater.inflate(R.layout.banner_container, null)
 
 
         // Find views
@@ -408,8 +394,7 @@ object NewAdManager {
 
         adView.loadAd(adRequest)
 
-        // Attach the inflated view to the root of the activity
-//        (activity.findViewById<View>(android.R.id.content) as ViewGroup).addView(adViewLayout)
+
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -453,12 +438,7 @@ object NewAdManager {
 
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowNativeAd(activity: Activity,adContainer:ViewGroup, id: String) {
-        // Inflate the appropriate layout
-//        val adContainer = activity.layoutInflater.inflate(
-//                R.layout.native_container_small_media,
-//                null
-//            )
+    fun loadAndShowNativeAd(activity: Activity,adContainer:ViewGroup,adType:NativeAdType, id: String) {
 
 
         // Find views
@@ -472,12 +452,25 @@ object NewAdManager {
         val adLoader = AdLoader.Builder(activity, id)
             .forNativeAd { nativeAd ->
                 // Inflate native ad layout
-                val nativeAdView = activity.layoutInflater.inflate(R.layout.native_ad_small_media_layout, null) as NativeAdView
+                var nativeAdView: NativeAdView?=null
+                when(adType){
+                    NativeAdType.SMALL_MEDIA->{
+                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_small_media_layout, null) as NativeAdView
+                    }
+                    NativeAdType.LARGE_MEDIA->{
+                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_large_media_layout, null) as NativeAdView
+
+                    }
+                    NativeAdType.IMAGE->{
+                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_without_media_layout, null) as NativeAdView
+
+                    }
+                }
 
 
 
                 // Populate native ad
-                populateNativeAdView(nativeAd, nativeAdView)
+                populateNativeAdView(nativeAd, nativeAdView!!)
 
                 // Remove previous views and add new native ad
                 nativeAdFrame.removeAllViews()
