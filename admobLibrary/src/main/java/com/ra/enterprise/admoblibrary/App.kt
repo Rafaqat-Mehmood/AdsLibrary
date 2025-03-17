@@ -16,7 +16,7 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 
 
-class App : Application(), LifecycleObserver {
+open class App : Application(), LifecycleObserver {
     private var currentActivity: Activity? = null
     var isPurchase=false
     var blockScreenList= mutableListOf("")

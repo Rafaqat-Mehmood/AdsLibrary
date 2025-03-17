@@ -10,9 +10,7 @@
 
 
 
-    <include
-        android:id="@+id/naAd"
-        layout="@layout/native_container_large_media" />
+
 
 
 
