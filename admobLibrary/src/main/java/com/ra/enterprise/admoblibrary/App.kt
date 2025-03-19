@@ -19,6 +19,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 open class App : Application(), LifecycleObserver {
     private var currentActivity: Activity? = null
     var isPurchase=false
+    var showAd=true
     var blockScreenList= mutableListOf("")
     var adId=""
 
@@ -76,7 +77,7 @@ open class App : Application(), LifecycleObserver {
                                 SplashAppOpen.showAdIfAvailable(it)
                             } else {
                                 // If no ad is available, request a new one
-                                SplashAppOpen.fetchAd(it,adId)
+                                SplashAppOpen.fetchAd(it,adId,showAd)
                             }
 
                         }

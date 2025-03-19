@@ -47,8 +47,9 @@ object NewAdManager {
     private var mInterstitialAd: InterstitialAd? = null
     private var dialog: Dialog? = null
     private lateinit var shimmerContainer: ShimmerFrameLayout
-//    private  var adaptiveBannerFrame:FrameLayout?=null
-    private  lateinit var adaptiveBannerFrame:FrameLayout
+
+    //    private  var adaptiveBannerFrame:FrameLayout?=null
+    private lateinit var adaptiveBannerFrame: FrameLayout
     private lateinit var adView: AdView
     private lateinit var adSize: AdSize
 //    private var nativeAd: NativeAd? = null
@@ -225,13 +226,25 @@ object NewAdManager {
 
     //Step 4: Load Small Banner
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowSmallBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+    fun loadAndShowSmallBanner(
+        activity: Activity,
+        adViewLayout: ViewGroup,
+        id: String,
+        offAds: Boolean
+    ) {
 
         // Find views from the inflated layout
         shimmerContainer = adViewLayout.findViewById(R.id.shimmer_view_container)
         adaptiveBannerFrame = adViewLayout.findViewById(R.id.adaptive_banner_frame)
 
 
+// If ads are turned off, hide the shimmer effect and return early
+        if (!offAds) {
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            adaptiveBannerFrame.visibility = View.GONE
+            return
+        }
 
         adView = AdView(activity).apply {
             adUnitId = id
@@ -263,11 +276,20 @@ object NewAdManager {
     }
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowMediumBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+    fun loadAndShowMediumBanner(activity: Activity, adViewLayout: ViewGroup, id: String,offAds:Boolean) {
 
         // Find views
-        val shimmerContainer = adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val shimmerContainer =
+            adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // If ads are turned off, hide the shimmer effect and return early
+        if (!offAds) {
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            bannerAdFrame.visibility = View.GONE
+            return
+        }
 
         // Create and configure AdView
         adView = AdView(activity).apply {
@@ -301,11 +323,20 @@ object NewAdManager {
     }
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowLargeBanner(activity: Activity,adViewLayout:ViewGroup, id: String) {
+    fun loadAndShowLargeBanner(activity: Activity, adViewLayout: ViewGroup, id: String,offAds:Boolean) {
 
         // Find views
-        val shimmerContainer =adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val shimmerContainer =
+            adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // If ads are turned off, hide the shimmer effect and return early
+        if (!offAds) {
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            bannerAdFrame.visibility = View.GONE
+            return
+        }
 
         // Create and configure AdView
         adView = AdView(activity).apply {
@@ -340,12 +371,27 @@ object NewAdManager {
 
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowCollapsibleAd(activity: Activity, adViewLayout:ViewGroup,openAd:String,id: String) {
+    fun loadAndShowCollapsibleAd(
+        activity: Activity,
+        adViewLayout: ViewGroup,
+        openAd: String,
+        id: String,
+        offAds: Boolean
+    ) {
 
 
         // Find views
-        val shimmerContainer = adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val shimmerContainer =
+            adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
+
+        // If ads are turned off, hide the shimmer effect and return early
+        if (!offAds) {
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            bannerAdFrame.visibility = View.GONE
+            return
+        }
 
         // Get screen width in dp
         val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
@@ -438,35 +484,60 @@ object NewAdManager {
 
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowNativeAd(activity: Activity,adContainer:ViewGroup,adType:NativeAdType, id: String) {
+    fun loadAndShowNativeAd(
+        activity: Activity,
+        adContainer: ViewGroup,
+        adType: NativeAdType,
+        id: String
+        ,offAds: Boolean
+    ) {
 
 
         // Find views
-        val shimmerContainer = adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val shimmerContainer =
+            adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val nativeAdFrame = adContainer.findViewById<FrameLayout>(R.id.nativeAd)
 
         // Start shimmer animation
         shimmerContainer.startShimmer()
 
+        // If ads are turned off, hide the shimmer effect and return early
+        if (!offAds) {
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            nativeAdFrame.visibility = View.GONE
+            return
+        }
+
         // Create AdLoader
         val adLoader = AdLoader.Builder(activity, id)
             .forNativeAd { nativeAd ->
                 // Inflate native ad layout
-                var nativeAdView: NativeAdView?=null
-                when(adType){
-                    NativeAdType.SMALL_MEDIA->{
-                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_small_media_layout, null) as NativeAdView
+                var nativeAdView: NativeAdView? = null
+                when (adType) {
+                    NativeAdType.SMALL_MEDIA -> {
+                        nativeAdView = activity.layoutInflater.inflate(
+                            R.layout.native_ad_small_media_layout,
+                            null
+                        ) as NativeAdView
                     }
-                    NativeAdType.LARGE_MEDIA->{
-                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_large_media_layout, null) as NativeAdView
+
+                    NativeAdType.LARGE_MEDIA -> {
+                        nativeAdView = activity.layoutInflater.inflate(
+                            R.layout.native_ad_large_media_layout,
+                            null
+                        ) as NativeAdView
 
                     }
-                    NativeAdType.IMAGE->{
-                        nativeAdView=activity.layoutInflater.inflate(R.layout.native_ad_without_media_layout, null) as NativeAdView
+
+                    NativeAdType.IMAGE -> {
+                        nativeAdView = activity.layoutInflater.inflate(
+                            R.layout.native_ad_without_media_layout,
+                            null
+                        ) as NativeAdView
 
                     }
                 }
-
 
 
                 // Populate native ad

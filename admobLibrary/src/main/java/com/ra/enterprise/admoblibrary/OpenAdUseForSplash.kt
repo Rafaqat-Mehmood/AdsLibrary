@@ -24,9 +24,9 @@ class OpenAdUseForSplash {
         var appOpenAd: AppOpenAd? = null
         private var loadCallback: AppOpenAdLoadCallback? = null
         private var isAdFetching: Boolean = false // Flag to track ad fetching
-        var adDismiss=false
+        var adDismiss = false
 
-        fun fetchAd(context: Activity,id:String,onAdDismissed: () -> Unit) {
+        fun fetchAd(context: Activity, id: String, onOffAds: Boolean, onAdDismissed: () -> Unit) {
             // Skip fetch if an ad is already loaded or being fetched
             if (appOpenAd != null) {
                 Log.d(TAG, "Ad already loaded. No need to fetch again.")
@@ -38,59 +38,61 @@ class OpenAdUseForSplash {
                 return
             }
 
-//            if (App.remoteModel != null && App.remoteModel!!.openAd.showAd) {
-            isAdFetching = true // Set flag to true
+            if (onOffAds) {
 
-            dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-            dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
-            dialog!!.setCancelable(false)
-            dialog!!.setCanceledOnTouchOutside(false)
-            dialog!!.setContentView(R.layout.layout_loading_ad)
+                isAdFetching = true // Set flag to true
 
-            dialog!!.show()
+                dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+                dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+                dialog!!.setCancelable(false)
+                dialog!!.setCanceledOnTouchOutside(false)
+                dialog!!.setContentView(R.layout.layout_loading_ad)
 
-            val handler = Handler(Looper.getMainLooper())
-            val timeoutRunnable = Runnable {
-                if (dialog != null && dialog!!.isShowing) {
-                    dismissDialogSafely() // Use the safe method for dismissing the dialog
-                    isAdFetching = false // Reset flag on timeout
-                    Log.d(TAG, "Ad loading timed out after 10 seconds.")
-                }
-            }
-            handler.postDelayed(timeoutRunnable, 10000)
+                dialog!!.show()
 
-            loadCallback = object : AppOpenAdLoadCallback() {
-                override fun onAdLoaded(ad: AppOpenAd) {
+                val handler = Handler(Looper.getMainLooper())
+                val timeoutRunnable = Runnable {
                     if (dialog != null && dialog!!.isShowing) {
-                        dismissDialogSafely() // Use the safe method here too
+                        dismissDialogSafely() // Use the safe method for dismissing the dialog
+                        isAdFetching = false // Reset flag on timeout
+                        Log.d(TAG, "Ad loading timed out after 10 seconds.")
                     }
-                    isAdFetching = false // Reset flag on success
-                    appOpenAd = ad // Store the loaded ad
-                    handler.removeCallbacks(timeoutRunnable)
-                    showAdIfAvailable(context,onAdDismissed)
-                    Log.d(TAG, "Ad loaded successfully and ready to be used.")
+                }
+                handler.postDelayed(timeoutRunnable, 10000)
+
+                loadCallback = object : AppOpenAdLoadCallback() {
+                    override fun onAdLoaded(ad: AppOpenAd) {
+                        if (dialog != null && dialog!!.isShowing) {
+                            dismissDialogSafely() // Use the safe method here too
+                        }
+                        isAdFetching = false // Reset flag on success
+                        appOpenAd = ad // Store the loaded ad
+                        handler.removeCallbacks(timeoutRunnable)
+                        showAdIfAvailable(context, onAdDismissed)
+                        Log.d(TAG, "Ad loaded successfully and ready to be used.")
+                    }
+
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        Log.d(TAG, "Ad failed to load: ${loadAdError.message}")
+                        if (dialog != null && dialog!!.isShowing) {
+                            dismissDialogSafely() // Use the safe method here
+                        }
+                        isAdFetching = false // Reset flag on failure
+                        handler.removeCallbacks(timeoutRunnable)
+                    }
                 }
 
-                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Log.d(TAG, "Ad failed to load: ${loadAdError.message}")
-                    if (dialog != null && dialog!!.isShowing) {
-                        dismissDialogSafely() // Use the safe method here
-                    }
-                    isAdFetching = false // Reset flag on failure
-                    handler.removeCallbacks(timeoutRunnable)
-                }
+                val request = adRequest
+                AppOpenAd.load(
+                    context,
+                    id,
+                    request,
+                    loadCallback!!
+                )
             }
-
-            val request = adRequest
-            AppOpenAd.load(
-                context,
-                id,
-                request,
-                loadCallback!!
-            )
         }
 
-        fun showAdIfAvailable(activity: Activity,onAdDismissed: () -> Unit) {
+        fun showAdIfAvailable(activity: Activity, onAdDismissed: () -> Unit) {
             if (appOpenAd == null) {
                 Log.d(TAG, "No ad available to show.")
                 return
@@ -137,7 +139,8 @@ class OpenAdUseForSplash {
             get() = AdRequest.Builder().build()
 
         private fun isAppInForeground(context: Context): Boolean {
-            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val activityManager =
+                context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             val appProcesses = activityManager.runningAppProcesses ?: return false
 
             for (appProcess in appProcesses) {
