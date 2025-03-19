@@ -1,8 +1,25 @@
-[![](https://jitpack.io/v/Rafaqat-Mehmood/AdsLibrary.svg)](https://jitpack.io/#Rafaqat-Mehmood/AdsLibrary)
+# AdsLibrary
 
-> Step 1. Add the JitPack repository to your build file
-Add it in your root settings.gradle at the end of repositories:
+[![JitPack](https://jitpack.io/v/Rafaqat-Mehmood/AdsLibrary.svg)](https://jitpack.io/#Rafaqat-Mehmood/AdsLibrary)
 
+AdsLibrary is a lightweight Android library to easily integrate banner, native, and interstitial ads into your app. Enjoy simple methods to load and display ads with customizable layouts and behavior.
+
+---
+
+## Table of Contents
+- [Configure](#implementation)
+- [Banner Ads Implementation](#banner-ads-implementation)
+- [Native Ads Implementation](#native-ads-implementation)
+- [Interstitial Ads Implementation](#interstitial-ads-implementation)
+- [Open Ads Implementation](#open-ads-implementation)
+- [Splash Open Ads Implementation](#splash-open-ads-implementation)
+---
+
+## Configure
+
+### Step 1: Add the JitPack Repository
+
+Add the repository in your root `settings.gradle` file:
 ```gradle
 dependencyResolutionManagement {
 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -20,10 +37,10 @@ dependencies {
 ```
  > Banner Ads. Implemenation
 ```Kotlin
- // 1st Parameter = Context or Activity
- // 2nd Parmter = adContainer is the layout of Ads
- // 3rd Parameter = Test Ad Id
- // 4th Parameter = Ads ON or Off then Shiffer Effect Visibility Gone
+ // 1st: Context or Activity
+// 2nd: adContainer (layout container for ads)
+// 3rd: Test Ad ID
+// 4th: Ads ON/OFF (if false, shimmer effect is hidden)
 
  // A-> This Method is Fixed Size Banner Ad
  val adContainer = findViewById<ViewGroup>(R.id.adContainer) 
@@ -43,7 +60,6 @@ NewAdManager.loadAndShowCollapsibleAd(this, adContainer as ViewGroup,"top","ca-a
 
 ```
 ```xml
-<!--    Ads Show Top then Constaints Attached Top-->
 <!--     1-> small banner show then  this pass -->
 <!--      layout="@layout/banner_container"-->
     
@@ -53,6 +69,8 @@ NewAdManager.loadAndShowCollapsibleAd(this, adContainer as ViewGroup,"top","ca-a
 <!--     3-> Rectangle banner show then  this pass -->
 <!--      layout="@layout/large_banner_container"-->
 
+
+<!-- Ads Shown at the Top -->
 <include
         layout="@layout/banner_container"
         android:layout_width="match_parent"
@@ -96,7 +114,6 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
 
 ```
 ```xml
-<!--    Ads Show Top then Constaints Attached Top-->
 <!--     1-> Native Ads without Media show then  this pass -->
 <!--      layout="@layout/native_container_without_media"-->
     
@@ -106,6 +123,7 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
 <!--     3-> Native Ads Small Media show then  this pass -->
 <!--      layout="@layout/native_container_small_media"-->
 
+<!-- Native Ad without Media (Top) -->
 <include
         layout="@layout/native_container_without_media"
         android:layout_width="match_parent"
@@ -114,7 +132,7 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopf="parent"/>
 
-<!--    Ads Show Bottom then Constaints Attached Bottom-->
+<!-- Native Ad without Media (Bottom) -->
 <include
         layout="@layout/native_container_without_media"
         android:layout_width="match_parent"
@@ -125,14 +143,15 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
 ```
 > Main Interstitial Ads. Implemenation (Seperate Ads Id)
 ```Kotlin
- // 1st Parameter = Context or Activity
- // 2nd Parmter =  3 value means that Every 3rd click ads Show
- // 3rd Parmter =  0 value mean count start 0 
- // 4th Parameter = 25 value mean that one session 25 ads show per user
- // 5th Parameter = Ads ids
+ // Parameters:
+// 1. Context or Activity
+// 2. Frequency (e.g., show every 3rd click)
+// 3. Initial count (starting from 0)
+// 4. Maximum ads per session (25 ads per user)
+// 5. Ad ID
 
   NewAdManager.loadAndShow(this,3,0,25,"ca-app-pub-3940256099942544/1033173712"){
-            // Ads dismiss then call this function OR ads load failed then call this function 
+    // Callback: Called when the ad is dismissed or fails to load.
         }
 ```
 
@@ -142,7 +161,7 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
  // 2nd Parameter = Ads ids
 
    NewAdManager.interLoad(this,"ca-app-pub-3940256099942544/1033173712"){
-            // Ads dismiss then call this function OR ads load failed then call this function
+    // Callback: Called when the ad is dismissed or fails to load.
 
         }
 ```
@@ -156,11 +175,11 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
   OpenAdUseForSplash.fetchAd(this,
             "ca-app-pub-3940256099942544/9257395921",true)
         {
-             // Ads dismiss then call this function OR ads load failed then call this function
+    // Callback: Called when the ad is dismissed or fails to load.
 
         }
         OpenAdUseForSplash.showAdIfAvailable(this@SplashAct){
-            // Ads dismiss then call this function OR ads load failed then call this function
+    // Callback: Called when the ad is dismissed or fails to load.
         }
 ```
 
