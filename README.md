@@ -2,40 +2,74 @@
 
 [![JitPack](https://jitpack.io/v/Rafaqat-Mehmood/AdsLibrary.svg)](https://jitpack.io/#Rafaqat-Mehmood/AdsLibrary)
 
-AdsLibrary is a lightweight Android library to easily integrate banner, native, and interstitial ads into your app. Enjoy simple methods to load and display ads with customizable layouts and behavior.
+AdsLibrary is an Android library designed to simplify the integration of various types of ads into your mobile application. It supports banner ads, native ads, interstitial ads, and open ads. This document explains every step in detail—from setting up your project to customizing layouts—so that developers of all experience levels can follow along.
 
 ---
 
 ## Table of Contents
-- [Configure](#implementation)
-- [Banner Ads Implementation](#banner-ads-implementation)
-- [Native Ads Implementation](#native-ads-implementation)
-- [Interstitial Ads Implementation](#interstitial-ads-implementation)
-- [Open Ads Implementation](#open-ads-implementation)
-- [Splash Open Ads Implementation](#splash-open-ads-implementation)
+
+1. [Installation](#installation)
+   - [Adding the JitPack Repository](#adding-the-jitpack-repository)
+   - [Adding the Dependency](#adding-the-dependency)
+2. [Banner Ads Implementation](#banner-ads-implementation)
+   - [Overview](#banner-ads-overview)
+   - [Kotlin Code Examples](#banner-ads-kotlin-code-examples)
+   - [XML Layout Details](#banner-ads-xml-layout-details)
+3. [Native Ads Implementation](#native-ads-implementation)
+   - [Overview](#native-ads-overview)
+   - [Kotlin Code Examples](#native-ads-kotlin-code-examples)
+   - [XML Layout Details](#native-ads-xml-layout-details)
+4. [Interstitial Ads Implementation](#interstitial-ads-implementation)
+   - [Main Interstitial Ads](#main-interstitial-ads)
+   - [Splash/Onboarding/Pro Screen Interstitial Ads](#splash-onboarding-pro-screen-interstitial-ads)
+5. [Open Ads Implementation](#open-ads-implementation)
+   - [Splash Screen Open Ads](#splash-screen-open-ads)
+   - [App-Wide Open Ads](#app-wide-open-ads)
+
 ---
 
-## Configure
+## 1. Installation
 
-### Step 1: Add the JitPack Repository
+Before you begin integrating AdsLibrary, you need to set up your project to use the library.
 
-Add the repository in your root `settings.gradle` file:
+### Adding the JitPack Repository
+
+AdsLibrary is hosted on JitPack. To fetch the library, add the following repository to your root `settings.gradle` file. This tells Gradle where to look for dependencies not available in the default repositories.
+
 ```gradle
 dependencyResolutionManagement {
-		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-		repositories {
-			mavenCentral()
-			maven { url = uri("https://jitpack.io") }
-		}
-	}
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        // Adding JitPack repository to fetch AdsLibrary
+        maven { url = uri("https://jitpack.io") }
+    }
+}
 ```
- > Step 2. Add the dependency
+ ### Adding the Dependency
+After setting up the repository, add AdsLibrary as a dependency in your module’s build.gradle file:
 ```gradle
 dependencies {
 	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:Tag")
 	}
 ```
- > Banner Ads. Implemenation
+Explanation:
+
+Replace "Tag" with the actual version number you intend to use (for example, "1.0.0").
+This line instructs Gradle to include AdsLibrary in your project during compilation.
+
+## 2. Banner Ads Implementation
+Banner ads are the most commonly used ad format. They come in different sizes and styles. This section explains how to implement various banner ads.
+
+### Banner Ads Overview
+AdsLibrary supports the following banner ad types:
+
+Fixed Size Banner: A standard banner with set dimensions.
+Large Banner: For larger spaces.
+Medium Banner: A balanced size between small and large.
+Collapsible Banner: Can be positioned at the top or bottom and collapse when not needed.
+
+ ### Banner Ads Kotlin Code Examples
 ```Kotlin
  // 1st: Context or Activity
 // 2nd: adContainer (layout container for ads)
@@ -59,6 +93,11 @@ NewAdManager.loadAndShowCollapsibleAd(this, adContainer as ViewGroup,"top","ca-a
 
 
 ```
+### Banner Ads XML Layout Details
+You need a dedicated container in your layout where banner ads will be shown. Create a layout file (for example, banner_container.xml) that defines the size and behavior of your ad container.
+
+Example XML for Banner Ads Container
+
 ```xml
 <!--     1-> small banner show then  this pass -->
 <!--      layout="@layout/banner_container"-->
@@ -88,7 +127,17 @@ NewAdManager.loadAndShowCollapsibleAd(this, adContainer as ViewGroup,"top","ca-a
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 ```
-> Native Ads. Implemenation
+## 3. Native Ads Implementation
+Native ads let you tailor the ad’s appearance to match your app’s design. You can choose from several templates depending on whether you want an image-only ad or a layout with media elements.
+
+### Native Ads Overview
+AdsLibrary provides three native ad formats:
+
+IMAGE: Displays a native ad focusing solely on an image.
+SMALL_MEDIA: Uses a compact layout with a small media element (such as a video thumbnail or small image).
+LARGE_MEDIA: Emphasizes larger media content and is suitable for rich visuals.
+
+### Native Ads Kotlin Code Examples
 ```Kotlin
  // 1st Parameter = Context or Activity
  // 2nd Parmter = adContainer is the layout of Ads
@@ -113,6 +162,9 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.SMA
 NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LARGE_MEDIA,"ca-app-pub-3940256099942544/1044960115", false)
 
 ```
+### Native Ads XML Layout Details
+You need to prepare XML layout files for different native ad templates so that the ad content fits nicely within your app’s design.
+
 ```xml
 <!--     1-> Native Ads without Media show then  this pass -->
 <!--      layout="@layout/native_container_without_media"-->
@@ -141,7 +193,12 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 ```
-> Main Interstitial Ads. Implemenation (Seperate Ads Id)
+## 4. Interstitial Ads Implementation
+Interstitial ads are full-screen ads that appear at natural transition points in your app (for example, after a level is completed or before navigating to a new screen).
+
+### Main Interstitial Ads
+This method allows you to show an interstitial ad every nth click and limits the total number of ads per session.
+
 ```Kotlin
  // Parameters:
 // 1. Context or Activity
@@ -155,7 +212,9 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         }
 ```
 
-> Splash Screen OR Onboarding Screen OR Pro Screen Interstitial Ads. Implemenation (Seperate Ads Id)
+### Splash/Onboarding/Pro Screen Interstitial Ads
+For scenarios like splash screens or onboarding, use a dedicated method:
+
 ```Kotlin
  // 1st Parameter = Context or Activity
  // 2nd Parameter = Ads ids
@@ -166,7 +225,12 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         }
 ```
 
-> Splash Screen Open Ads. Implemenation (Seperate Ads Id)
+## 5. Open Ads Implementation
+Open ads are used to display a full-screen ad when launching the app or in other situations where you want to block user interaction until the ad is dismissed.
+
+### Splash Screen Open Ads
+Implement open ads on your splash screen with the following two-step process:
+
 ```Kotlin
  // 1st Parameter = Context or Activity
  // 2nd Parameter = Ads ids
@@ -183,7 +247,9 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         }
 ```
 
-> Over All Show Open Ads. Implemenation (Seperate Ads Id)
+## App-Wide Open Ads
+Configure your Application class to globally manage open ads. Extend the provided Application class from AdsLibrary.
+
 ```Kotlin
  // 1st Parameter = Context or Activity
  // 2nd Parameter = Ads ids
@@ -209,4 +275,5 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
   }
 
 }
+
 ```
