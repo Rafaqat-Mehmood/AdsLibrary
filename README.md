@@ -123,3 +123,71 @@ NewAdManager.loadAndShowNativeAd(this, adContainer as ViewGroup,NativeAdType.LAR
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 ```
+> Main Interstitial Ads. Implemenation (Seperate Ads Id)
+```Kotlin
+ // 1st Parameter = Context or Activity
+ // 2nd Parmter =  3 value means that Every 3rd click ads Show
+ // 3rd Parmter =  0 value mean count start 0 
+ // 4th Parameter = 25 value mean that one session 25 ads show per user
+ // 5th Parameter = Ads ids
+
+  NewAdManager.loadAndShow(this,3,0,25,"ca-app-pub-3940256099942544/1033173712"){
+            // Ads dismiss then call this function OR ads load failed then call this function 
+        }
+```
+
+> Splash Screen OR Onboarding Screen OR Pro Screen Interstitial Ads. Implemenation (Seperate Ads Id)
+```Kotlin
+ // 1st Parameter = Context or Activity
+ // 2nd Parameter = Ads ids
+
+   NewAdManager.interLoad(this,"ca-app-pub-3940256099942544/1033173712"){
+            // Ads dismiss then call this function OR ads load failed then call this function
+
+        }
+```
+
+> Splash Screen Open Ads. Implemenation (Seperate Ads Id)
+```Kotlin
+ // 1st Parameter = Context or Activity
+ // 2nd Parameter = Ads ids
+// 3rd Parameter = if show ad then true pass if OFF Ads then false add
+
+  OpenAdUseForSplash.fetchAd(this,
+            "ca-app-pub-3940256099942544/9257395921",true)
+        {
+             // Ads dismiss then call this function OR ads load failed then call this function
+
+        }
+        OpenAdUseForSplash.showAdIfAvailable(this@SplashAct){
+            // Ads dismiss then call this function OR ads load failed then call this function
+        }
+```
+
+> Over All Show Open Ads. Implemenation (Seperate Ads Id)
+```Kotlin
+ // 1st Parameter = Context or Activity
+ // 2nd Parameter = Ads ids
+// 3rd Parameter = if show ad then true pass if OFF Ads then false add
+
+ // Your App class extend My App Class
+ class App : com.ra.enterprise.admoblibrary.App()
+ {
+
+   // if user purchase then purchase variable store in library variable
+   App().isPurchase=SplashAct.purchaseSuccessfull
+
+   // if Ads OFF OR ON then pass true or false
+   App().showAd=true
+
+            // check condition user purchase or not and 2nd check adS ON or OFF
+   if (!SplashAct.purchaseSuccessfull && remoteModel!!.openAd.showAd)
+   {
+       adId= "ca-app-pub-3940256099942544/9257395921"
+  // block the screen which or not show the open Ads that Screen
+  // Pass Your Activity Name which You are Block
+  blockScreenList(listOf("AdActivity","SplashAct","ProAct","HowToUseAct"))
+  }
+
+}
+```
