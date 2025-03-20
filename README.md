@@ -50,7 +50,7 @@ dependencyResolutionManagement {
 After setting up the repository, add AdsLibrary as a dependency in your module’s build.gradle file:
 ```gradle
 dependencies {
-	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:Tag")
+	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.3")
 	}
 ```
 Explanation:
