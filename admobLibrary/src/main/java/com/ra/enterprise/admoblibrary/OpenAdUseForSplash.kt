@@ -27,6 +27,12 @@ class OpenAdUseForSplash {
         var adDismiss = false
 
         fun fetchAd(context: Activity, id: String, onOffAds: Boolean, onAdDismissed: () -> Unit) {
+            if (!onOffAds) {
+                Log.d(TAG, "Ads are turned off. No action will be performed.")
+                onAdDismissed() // Proceed without showing an ad
+                return
+            }
+
             // Skip fetch if an ad is already loaded or being fetched
             if (appOpenAd != null) {
                 Log.d(TAG, "Ad already loaded. No need to fetch again.")
@@ -37,9 +43,6 @@ class OpenAdUseForSplash {
                 Log.d(TAG, "Ad fetch request ignored. Already fetching an ad.")
                 return
             }
-
-            if (onOffAds) {
-
                 isAdFetching = true // Set flag to true
 
                 dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
@@ -89,7 +92,6 @@ class OpenAdUseForSplash {
                     request,
                     loadCallback!!
                 )
-            }
         }
 
         fun showAdIfAvailable(activity: Activity, onAdDismissed: () -> Unit) {

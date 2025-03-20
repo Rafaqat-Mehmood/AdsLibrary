@@ -19,9 +19,9 @@ import androidx.lifecycle.ProcessLifecycleOwner
 open class App : Application(), LifecycleObserver {
     private var currentActivity: Activity? = null
     var isPurchase=false
-    var showAd=true
+    var showAd=false
     var blockScreenList= mutableListOf("")
-    var adId=""
+    var adId="ca-app-pub-3940256099942544/9257395921"
 
     override fun onCreate() {
         super.onCreate()
