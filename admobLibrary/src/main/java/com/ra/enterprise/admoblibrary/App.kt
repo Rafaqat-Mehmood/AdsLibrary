@@ -18,8 +18,6 @@ import androidx.lifecycle.ProcessLifecycleOwner
 
 open class App : Application(), LifecycleObserver {
     private var currentActivity: Activity? = null
-    var isPurchase=false
-    var showAd=false
     var blockScreenList= mutableListOf("")
     var adId="ca-app-pub-3940256099942544/9257395921"
 
@@ -65,20 +63,16 @@ open class App : Application(), LifecycleObserver {
             var appOpenManager = SplashAppOpen()
 
             currentActivity?.let {
-                if (checkForInternet() && !isPurchase) {
+                if (checkForInternet()) {
                     val activityName = it.javaClass.simpleName
                     if (activityName != "AdActivity" && activityName !in getBlockedScreens())
                     {
-                        if (!isPurchase) {
-//                            SplashAppOpen.fetchAd(it)
-
                             if (SplashAppOpen.appOpenAd != null) {
                                 // Show the ad if available
                                 SplashAppOpen.showAdIfAvailable(it)
                             } else {
                                 // If no ad is available, request a new one
-                                SplashAppOpen.fetchAd(it,adId,showAd)
-                            }
+                                    SplashAppOpen.fetchAd(it, adId)
 
                         }
 

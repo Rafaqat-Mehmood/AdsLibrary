@@ -27,11 +27,11 @@ class SplashAppOpen {
         private var isAdFetching: Boolean = false // Flag to track ad fetching
 
 
-        fun fetchAd(context: Activity,id:String,onOffAds:Boolean) {
-            if (!onOffAds) {
-                Log.d(TAG, "Ads are turned off. Skipping ad fetch.")
-                return
-            }
+        fun fetchAd(context: Activity,id:String) {
+//            if (!onOffAds) {
+//                Log.d(TAG, "Ads are turned off. Skipping ad fetch.")
+//                return
+//            }
 
             // Skip fetch if an ad is already loaded or being fetched
             if (appOpenAd != null) {
@@ -45,7 +45,6 @@ class SplashAppOpen {
             }
 
                     isAdFetching = true // Set flag to true
-
                     dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                     dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
                     dialog!!.setCancelable(false)
