@@ -50,7 +50,8 @@ dependencyResolutionManagement {
 After setting up the repository, add AdsLibrary as a dependency in your module’s build.gradle file:
 ```gradle
 dependencies {
-	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:Tag")
+                // This Documeneation is Version 1.3 Latest Version Uses Then Some Method Changes Check its Version
+	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.3")
 	}
 ```
 Explanation:
@@ -260,19 +261,13 @@ Configure your Application class to globally manage open ads. Extend the provide
  {
 
    // if user purchase then purchase variable store in library variable
-   App().isPurchase=SplashAct.purchaseSuccessfull
+    this.isPurchase=SplashAct.purchaseSuccessfull
 
-   // if Ads OFF OR ON then pass true or false
-   App().showAd=true
-
-            // check condition user purchase or not and 2nd check adS ON or OFF
-   if (!SplashAct.purchaseSuccessfull && remoteModel!!.openAd.showAd)
-   {
-       adId= "ca-app-pub-3940256099942544/9257395921"
-  // block the screen which or not show the open Ads that Screen
+        this.adId = "ca-app-pub-3940256099942544/9257395921"
+// block the screen which or not show the open Ads that Screen
   // Pass Your Activity Name which You are Block
-  blockScreenList(listOf("AdActivity","SplashAct","ProAct","HowToUseAct"))
-  }
+        this.blockScreenList(listOf("AdActivity","SplashAct")) // Call the method on 'this'
+        this.showAd=false
 
 }
 
