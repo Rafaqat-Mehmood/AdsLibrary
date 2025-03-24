@@ -50,6 +50,7 @@ dependencyResolutionManagement {
 After setting up the repository, add AdsLibrary as a dependency in your module’s build.gradle file:
 ```gradle
 dependencies {
+                // This Documeneation is Version 1.3 Latest Version Uses Then Some Method Changes Check its Version
 	        implementation("com.github.Rafaqat-Mehmood:AdsLibrary:1.3")
 	}
 ```
