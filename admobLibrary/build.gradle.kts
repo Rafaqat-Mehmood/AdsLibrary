@@ -48,7 +48,5 @@ dependencies {
     implementation(libs.ssp.android)
 
     implementation(libs.play.services.ads)
-    implementation(libs.billing.ktx)
-    implementation(libs.gson)
-    implementation(libs.converter.gson)
+
 }

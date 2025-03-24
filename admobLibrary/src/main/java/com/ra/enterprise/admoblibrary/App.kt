@@ -1,5 +1,6 @@
 package com.ra.enterprise.admoblibrary
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -19,7 +20,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 open class App : Application(), LifecycleObserver {
     private var currentActivity: Activity? = null
     var blockScreenList= mutableListOf("")
-    var adId="ca-app-pub-3940256099942544/9257395921"
+    var adId=""
+    var showAd=false
 
     override fun onCreate() {
         super.onCreate()
@@ -67,13 +69,16 @@ open class App : Application(), LifecycleObserver {
                     val activityName = it.javaClass.simpleName
                     if (activityName != "AdActivity" && activityName !in getBlockedScreens())
                     {
+
+                            if (showAd)
+                            {
                             if (SplashAppOpen.appOpenAd != null) {
                                 // Show the ad if available
                                 SplashAppOpen.showAdIfAvailable(it)
                             } else {
                                 // If no ad is available, request a new one
-                                    SplashAppOpen.fetchAd(it, adId)
-
+                                SplashAppOpen.fetchAd(it, adId)
+                            }
                         }
 
                     }

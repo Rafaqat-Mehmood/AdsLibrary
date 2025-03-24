@@ -24,7 +24,6 @@ class OpenAdUseForSplash {
         var appOpenAd: AppOpenAd? = null
         private var loadCallback: AppOpenAdLoadCallback? = null
         private var isAdFetching: Boolean = false // Flag to track ad fetching
-        var adDismiss = false
 
         fun fetchAd(context: Activity, id: String, onOffAds: Boolean, onAdDismissed: () -> Unit) {
             if (!onOffAds) {
@@ -71,7 +70,43 @@ class OpenAdUseForSplash {
                         isAdFetching = false // Reset flag on success
                         appOpenAd = ad // Store the loaded ad
                         handler.removeCallbacks(timeoutRunnable)
-                        showAdIfAvailable(context, onAdDismissed)
+                        if (appOpenAd == null) {
+                            Log.d(TAG, "No ad available to show.")
+                            return
+                        }
+
+                        // Check if app is in foreground
+                        if (!isAppInForeground(context)) {
+                            Log.d(TAG, "Ad cannot be shown as the app is not in the foreground.")
+                            return
+                        }
+
+                        val fullScreenContentCallback = object : FullScreenContentCallback() {
+                            override fun onAdDismissedFullScreenContent() {
+                                appOpenAd = null // Clear the ad after it is dismissed
+                                isAdFetching = false // Reset fetching flag
+                                Log.d(TAG, "Ad dismissed.")
+
+                                onAdDismissed()
+
+                            }
+
+                            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                                Log.i(TAG, "Ad failed to show: $adError")
+                                appOpenAd = null // Clear the ad on failure
+                                isAdFetching = false // Reset fetching flag
+                                onAdDismissed()
+
+
+                            }
+
+                            override fun onAdShowedFullScreenContent() {
+                                Log.d(TAG, "Ad is showing.")
+                            }
+                        }
+
+                        appOpenAd!!.fullScreenContentCallback = fullScreenContentCallback
+                        appOpenAd!!.show(context)
                         Log.d(TAG, "Ad loaded successfully and ready to be used.")
                     }
 
@@ -93,49 +128,6 @@ class OpenAdUseForSplash {
                     loadCallback!!
                 )
         }
-
-        fun showAdIfAvailable(activity: Activity, onAdDismissed: () -> Unit) {
-            if (appOpenAd == null) {
-                Log.d(TAG, "No ad available to show.")
-                return
-            }
-
-            // Check if app is in foreground
-            if (!isAppInForeground(activity)) {
-                Log.d(TAG, "Ad cannot be shown as the app is not in the foreground.")
-                return
-            }
-
-            val fullScreenContentCallback = object : FullScreenContentCallback() {
-                override fun onAdDismissedFullScreenContent() {
-                    appOpenAd = null // Clear the ad after it is dismissed
-                    isAdFetching = false // Reset fetching flag
-                    Log.d(TAG, "Ad dismissed.")
-
-//                    commonMethod(activity)
-                    onAdDismissed()
-
-                }
-
-                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                    Log.i(TAG, "Ad failed to show: $adError")
-                    appOpenAd = null // Clear the ad on failure
-                    isAdFetching = false // Reset fetching flag
-//                    commonMethod(activity)
-                    onAdDismissed()
-
-
-                }
-
-                override fun onAdShowedFullScreenContent() {
-                    Log.d(TAG, "Ad is showing.")
-                }
-            }
-
-            appOpenAd!!.fullScreenContentCallback = fullScreenContentCallback
-            appOpenAd!!.show(activity)
-        }
-
 
         private val adRequest: AdRequest
             get() = AdRequest.Builder().build()

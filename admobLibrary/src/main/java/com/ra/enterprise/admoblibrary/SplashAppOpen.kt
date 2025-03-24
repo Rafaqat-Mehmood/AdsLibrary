@@ -28,10 +28,6 @@ class SplashAppOpen {
 
 
         fun fetchAd(context: Activity,id:String) {
-//            if (!onOffAds) {
-//                Log.d(TAG, "Ads are turned off. Skipping ad fetch.")
-//                return
-//            }
 
             // Skip fetch if an ad is already loaded or being fetched
             if (appOpenAd != null) {

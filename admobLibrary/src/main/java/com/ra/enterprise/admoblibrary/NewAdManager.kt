@@ -33,6 +33,9 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 /**
@@ -48,33 +51,29 @@ object NewAdManager {
     private var dialog: Dialog? = null
     private lateinit var shimmerContainer: ShimmerFrameLayout
 
-    //    private  var adaptiveBannerFrame:FrameLayout?=null
     private lateinit var adaptiveBannerFrame: FrameLayout
     private lateinit var adView: AdView
     private lateinit var adSize: AdSize
-//    private var nativeAd: NativeAd? = null
-
-    var adCloseOrNot = false
-    var isVisibile = false
-    var mainAdIsLoaded = false
-
-//    private var mNativeAd: NativeAd? = null
-
+    var sessionAdCount=0
+    var perSessionAd=25
+    var remoteXValue=3
 
     //Step 1: Initialize Ads
     fun initializeAds(context: Context?) {
-        MobileAds.initialize(context!!) {
-            Log.i("TAG", "initializeAds: ")
+        val backgroundScope = CoroutineScope(Dispatchers.IO)
+        backgroundScope.launch {
+            // Initialize the Google Mobile Ads SDK on a background thread.
+            MobileAds.initialize(context!!) {
+                Log.i("TAG", "initializeAds: ")
+            }
         }
+
     }
 
 
     //Step 2: Main Interstitial Ad Load And Show on the Spot with Ad Loading Dialog
     fun loadAndShow(
         context: Activity,
-        remoteXValue: Long,
-        sessionAdCount: Int, // Keep as val (immutable)
-        perSessionAd: Int,
         adId: String,
         onAdDismissed: () -> Unit
     ) {
@@ -85,9 +84,8 @@ object NewAdManager {
             return
         }
 
-        var currentSessionAdCount = sessionAdCount // Create a mutable copy
 
-        if (currentSessionAdCount >= perSessionAd) {
+        if (sessionAdCount >= perSessionAd) {
             Log.i("TAG", "Ad limit reached for this session.")
             onAdDismissed()
             return
@@ -106,11 +104,11 @@ object NewAdManager {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     super.onAdLoaded(interstitialAd)
                     mainInterstitialAd = interstitialAd
-                    currentSessionAdCount++ // Modify the mutable copy
+                    sessionAdCount++ // Modify the mutable copy
 
                     Log.e(
                         "TAG",
-                        "onAdLoaded: Ad is ready." + mainCount + "---" + currentSessionAdCount + "---" + remoteXValue
+                        "onAdLoaded: Ad is ready." + mainCount + "---" + sessionAdCount + "---" + remoteXValue
                     )
 
                     loadingDialog.dismiss()
@@ -229,22 +227,13 @@ object NewAdManager {
     fun loadAndShowSmallBanner(
         activity: Activity,
         adViewLayout: ViewGroup,
-        id: String,
-        offAds: Boolean
+        id: String
     ) {
 
         // Find views from the inflated layout
         shimmerContainer = adViewLayout.findViewById(R.id.shimmer_view_container)
         adaptiveBannerFrame = adViewLayout.findViewById(R.id.adaptive_banner_frame)
 
-
-// If ads are turned off, hide the shimmer effect and return early
-        if (!offAds) {
-            shimmerContainer.stopShimmer()
-            shimmerContainer.visibility = View.GONE
-            adaptiveBannerFrame.visibility = View.GONE
-            return
-        }
 
         adView = AdView(activity).apply {
             adUnitId = id
@@ -276,20 +265,13 @@ object NewAdManager {
     }
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowMediumBanner(activity: Activity, adViewLayout: ViewGroup, id: String,offAds:Boolean) {
+    fun loadAndShowMediumBanner(activity: Activity, adViewLayout: ViewGroup, id: String) {
 
         // Find views
         val shimmerContainer =
             adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
 
-        // If ads are turned off, hide the shimmer effect and return early
-        if (!offAds) {
-            shimmerContainer.stopShimmer()
-            shimmerContainer.visibility = View.GONE
-            bannerAdFrame.visibility = View.GONE
-            return
-        }
 
         // Create and configure AdView
         adView = AdView(activity).apply {
@@ -323,20 +305,13 @@ object NewAdManager {
     }
 
     @SuppressLint("StaticFieldLeak")
-    fun loadAndShowLargeBanner(activity: Activity, adViewLayout: ViewGroup, id: String,offAds:Boolean) {
+    fun loadAndShowLargeBanner(activity: Activity, adViewLayout: ViewGroup, id: String) {
 
         // Find views
         val shimmerContainer =
             adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
 
-        // If ads are turned off, hide the shimmer effect and return early
-        if (!offAds) {
-            shimmerContainer.stopShimmer()
-            shimmerContainer.visibility = View.GONE
-            bannerAdFrame.visibility = View.GONE
-            return
-        }
 
         // Create and configure AdView
         adView = AdView(activity).apply {
@@ -375,8 +350,7 @@ object NewAdManager {
         activity: Activity,
         adViewLayout: ViewGroup,
         openAd: String,
-        id: String,
-        offAds: Boolean
+        id: String
     ) {
 
 
@@ -385,13 +359,6 @@ object NewAdManager {
             adViewLayout.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val bannerAdFrame = adViewLayout.findViewById<FrameLayout>(R.id.adaptive_banner_frame)
 
-        // If ads are turned off, hide the shimmer effect and return early
-        if (!offAds) {
-            shimmerContainer.stopShimmer()
-            shimmerContainer.visibility = View.GONE
-            bannerAdFrame.visibility = View.GONE
-            return
-        }
 
         // Get screen width in dp
         val windowManager = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager?
@@ -489,7 +456,6 @@ object NewAdManager {
         adContainer: ViewGroup,
         adType: NativeAdType,
         id: String
-        ,offAds: Boolean
     ) {
 
 
@@ -501,13 +467,7 @@ object NewAdManager {
         // Start shimmer animation
         shimmerContainer.startShimmer()
 
-        // If ads are turned off, hide the shimmer effect and return early
-        if (!offAds) {
-            shimmerContainer.stopShimmer()
-            shimmerContainer.visibility = View.GONE
-            nativeAdFrame.visibility = View.GONE
-            return
-        }
+
 
         // Create AdLoader
         val adLoader = AdLoader.Builder(activity, id)
@@ -602,54 +562,6 @@ object NewAdManager {
         nativeAdView.setNativeAd(nativeAd)
     }
 
-//    fun loadNative(context: Context, adContainer: TemplateView, advertisingArea: View, id: String) {
-//
-//        if (context.checkForInternet() && !SplashAct.purchaseSuccessfull) {
-//            Log.i("TAG", "loadNative: " + id)
-//            val adLoader = AdLoader.Builder(context, id)
-//                .forNativeAd { nativeAd: com.google.android.gms.ads.nativead.NativeAd ->
-//                    // Destroy any previously loaded NativeAd to avoid memory leaks
-//                    NewAdManager.nativeAd?.destroy()
-//                    NewAdManager.nativeAd = nativeAd
-//                    adContainer.setNativeAd(nativeAd)
-//                    advertisingArea.visibility = View.VISIBLE
-//                    isVisibile = true
-//
-//
-//                }.withAdListener(object : AdListener() {
-//                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                        super.onAdFailedToLoad(loadAdError)
-//                        advertisingArea.visibility = View.GONE
-//
-//                        Log.i("TAG", "Fail: " + loadAdError.message)
-//
-//
-//                    }
-//                })
-//                .withNativeAdOptions(
-//                    NativeAdOptions.Builder()
-//                        .setRequestCustomMuteThisAd(true)
-//                        .setAdChoicesPlacement(NativeAdOptions.ADCHOICES_TOP_LEFT)
-//                        .build()
-//                )
-//                .build()
-//
-//            adLoader.loadAd(AdRequest.Builder().build())
-//        }
-//
-//    }
-
-
-//    fun destroyNativeAd() {
-//        if (nativeAd !=null) {
-//            nativeAd!!.destroy()
-//            nativeAd = null
-//        }
-//    }
-
-    fun resetMainCount() {
-        mainCount = 0L
-    }
 
     //PreLoad
 //    fun loadAdmobInterstitialAds(context2: Context) {
@@ -681,186 +593,6 @@ object NewAdManager {
 //                Log.i("TAG", "Main-Inter-Already-Loaded: ")
 //            }
 //        }
-//    }
-
-
-//    fun loadNative(activity: Activity, frameLayout: FrameLayout, adId: String) {
-//        if (activity.checkForInternet() && !SplashAct.purchaseSuccessfull) {
-//            val adLoader = AdLoader.Builder(activity, adId)
-//                .forNativeAd { nativeAd ->
-//                    mNativeAd = nativeAd
-//                }
-//                .withAdListener(object : AdListener() {
-//                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                        super.onAdFailedToLoad(loadAdError)
-//                        frameLayout.visibility=View.GONE
-//                        Log.e("TAG", "Customize Native onAdFailedToLoad: ${loadAdError.message}")
-//                    }
-//
-//                    override fun onAdLoaded() {
-//                        super.onAdLoaded()
-//
-//                        if (App.remoteModel!=null && App.remoteModel!!.onBoardSmallNative.showAd)
-//                        {
-//                            showNativeAdsCustomize(activity, frameLayout)
-//                            frameLayout.visibility=View.VISIBLE
-//                            Log.i("TAG", "onAdLoaded--1st-if Run: ")
-//                        }
-//
-//
-//                    }
-//                })
-//                .build()
-//
-//            adLoader.loadAd(AdRequest.Builder().build())
-//        }
-//    }
-//    fun showNativeAdsCustomize(activity: Activity, fLayout: FrameLayout) {
-//        if (mNativeAd == null) return
-//
-//        val adVw = LayoutInflater.from(activity).inflate(R.layout.gnt_medium_small_media_template_view, null) as NativeAdView
-//        val mediaView = adVw.findViewById<MediaView>(R.id.ad_media)
-//        mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-//        adVw.mediaView = mediaView
-//
-//        adVw.headlineView = adVw.findViewById(R.id.tv_title)
-//        adVw.callToActionView = adVw.findViewById(R.id.btn_click)
-//        adVw.iconView = adVw.findViewById(R.id.icon_ad)
-//
-//        mNativeAd?.let {
-//            (adVw.headlineView as TextView).text = it.headline
-//
-//            if (it.callToAction == null) {
-//                adVw.callToActionView?.visibility = View.INVISIBLE
-//            } else {
-//                adVw.callToActionView?.visibility = View.VISIBLE
-//                (adVw.callToActionView as TextView).text = it.callToAction
-//            }
-//
-////            if (it.icon == null) {
-////                adVw.iconView?.visibility = View.GONE
-////            } else {
-////                Glide.with(activity.applicationContext)
-////                    .load(it.icon?.drawable)
-////                    .circleCrop()
-////                    .into(adVw.iconView as ImageView)
-////                adVw.iconView?.visibility = View.VISIBLE
-////            }
-//            if (it.icon == null) {
-//                adVw.iconView?.visibility = View.GONE
-//            } else {
-//                val drawable = it.icon?.drawable
-//                if (drawable != null) {
-//                    // Set the drawable directly to the ImageView
-//                    (adVw.iconView as? ImageView)?.setImageDrawable(drawable)
-//                }
-//                adVw.iconView?.visibility = View.VISIBLE
-//            }
-//
-//
-//            adVw.setNativeAd(it)
-//
-//            it.mediaContent?.videoController?.let { vc ->
-//                if (vc.hasVideoContent()) {
-//                    vc.setVideoLifecycleCallbacks(object : VideoController.VideoLifecycleCallbacks() {
-//                        override fun onVideoEnd() {
-//                            super.onVideoEnd()
-//                        }
-//                    })
-//                }
-//            }
-//        }
-//
-//        fLayout.removeAllViews()
-//        fLayout.addView(adVw)
-//    }
-//
-//
-//    fun loadLastNative(activity: Activity, frameLayout: FrameLayout, adId: String) {
-//        if (activity.checkForInternet() && !SplashAct.purchaseSuccessfull) {
-//            val adLoader = AdLoader.Builder(activity, adId)
-//                .forNativeAd { nativeAd ->
-//                    mNativeAd = nativeAd
-//                }
-//                .withAdListener(object : AdListener() {
-//                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                        super.onAdFailedToLoad(loadAdError)
-//                        frameLayout.visibility=View.GONE
-//                        Log.e("TAG", "Customize Native onAdFailedToLoad: ${loadAdError.message}")
-//                    }
-//
-//                    override fun onAdLoaded() {
-//                        super.onAdLoaded()
-//                        if (App.remoteModel!=null && App.remoteModel!!.onBoardSmallNativeLastItem.showAd) {
-//                            // showNativeAdsCustomize(activity, frameLayout)
-//                            Log.i("TAG", "onAdLoaded--2nd-else if Run: ")
-//                        }
-//
-//                    }
-//                })
-//                .build()
-//
-//            adLoader.loadAd(AdRequest.Builder().build())
-//        }
-//    }
-//    fun showLastNativeAdsCustomize(activity: Activity, fLayout: FrameLayout) {
-//        if (mNativeAd == null) return
-//
-//        val adVw = LayoutInflater.from(activity).inflate(R.layout.gnt_medium_small_media_template_view, null) as NativeAdView
-//        val mediaView = adVw.findViewById<MediaView>(R.id.ad_media)
-//        mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-//        adVw.mediaView = mediaView
-//
-//        adVw.headlineView = adVw.findViewById(R.id.tv_title)
-//        adVw.callToActionView = adVw.findViewById(R.id.btn_click)
-//        adVw.iconView = adVw.findViewById(R.id.icon_ad)
-//
-//        mNativeAd?.let {
-//            (adVw.headlineView as TextView).text = it.headline
-//
-//            if (it.callToAction == null) {
-//                adVw.callToActionView?.visibility = View.INVISIBLE
-//            } else {
-//                adVw.callToActionView?.visibility = View.VISIBLE
-//                (adVw.callToActionView as TextView).text = it.callToAction
-//            }
-//
-////            if (it.icon == null) {
-////                adVw.iconView?.visibility = View.GONE
-////            } else {
-////                Glide.with(activity.applicationContext)
-////                    .load(it.icon?.drawable)
-////                    .circleCrop()
-////                    .into(adVw.iconView as ImageView)
-////                adVw.iconView?.visibility = View.VISIBLE
-////            }
-//            if (it.icon == null) {
-//                adVw.iconView?.visibility = View.GONE
-//            } else {
-//                val drawable = it.icon?.drawable
-//                if (drawable != null) {
-//                    // Set the drawable directly to the ImageView
-//                    (adVw.iconView as? ImageView)?.setImageDrawable(drawable)
-//                }
-//                adVw.iconView?.visibility = View.VISIBLE
-//            }
-//
-//
-//            adVw.setNativeAd(it)
-//
-//            it.mediaContent?.videoController?.let { vc ->
-//                if (vc.hasVideoContent()) {
-//                    vc.setVideoLifecycleCallbacks(object : VideoController.VideoLifecycleCallbacks() {
-//                        override fun onVideoEnd() {
-//                            super.onVideoEnd()
-//                        }
-//                    })
-//                }
-//            }
-//        }
-//
-//        fLayout.removeAllViews()
-//        fLayout.addView(adVw)
 //    }
 
 }
