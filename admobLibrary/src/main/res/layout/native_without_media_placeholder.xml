@@ -47,6 +47,7 @@
                     android:paddingEnd="6dp">
 
                     <TextView
+                        android:id="@+id/nativeHeadline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Ad will shown here"

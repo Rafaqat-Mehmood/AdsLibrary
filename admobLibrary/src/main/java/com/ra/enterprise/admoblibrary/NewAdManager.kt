@@ -33,6 +33,10 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
+import com.ra.enterprise.ConsentCallback
+import com.ra.enterprise.admoblibrary.controller.ConsentController
+import com.ra.enterprise.admoblibrary.enums.CMPStatus
+import com.ra.enterprise.admoblibrary.enums.NativeAdType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,16 +63,16 @@ object NewAdManager {
     var remoteXValue=3
 
     //Step 1: Initialize Ads
-    fun initializeAds(context: Context?) {
+    fun initializeAds(context: Context) {
         val backgroundScope = CoroutineScope(Dispatchers.IO)
         backgroundScope.launch {
             // Initialize the Google Mobile Ads SDK on a background thread.
-            MobileAds.initialize(context!!) {
+            MobileAds.initialize(context) {
                 Log.i("TAG", "initializeAds: ")
             }
         }
-
     }
+
 
 
     //Step 2: Main Interstitial Ad Load And Show on the Spot with Ad Loading Dialog
@@ -216,6 +220,48 @@ object NewAdManager {
 
 
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+    // Just Interstitial Ad Load Method
+    fun interJustLoadCall(context: Activity, id: String, onAdDismissed: () -> Unit) {
+        try {
+            dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+            dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            dialog!!.setCancelable(false)
+            dialog!!.setCanceledOnTouchOutside(false)
+            dialog!!.setContentView(R.layout.layout_loading_ad)
+            dialog!!.show()
+            if (mInterstitialAd == null) {
+                val adRequest = AdRequest.Builder().build()
+                InterstitialAd.load(
+                    context, id, adRequest,
+                    object : InterstitialAdLoadCallback() {
+                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                            super.onAdLoaded(interstitialAd)
+                            mInterstitialAd = interstitialAd
+                            dialog!!.dismiss()
+                            Log.e("TAG", "Interstitial Ad Loaded: ")
+                            onAdDismissed()
+                        }
+
+                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                            super.onAdFailedToLoad(loadAdError)
+                            mInterstitialAd = null
+                            dialog!!.dismiss()
+                            onAdDismissed()
+
+                            Log.e("TAG", "Interstitial Failed: " + loadAdError.message)
+
+                        }
+                    })
+            } else {
+                Log.i("TAG", "Already-Splash-Inter-Loaded: ")
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -489,6 +535,13 @@ object NewAdManager {
                         ) as NativeAdView
 
                     }
+                    NativeAdType.LARGE_MEDIA_RATING_TEXT -> {
+                        nativeAdView = activity.layoutInflater.inflate(
+                            R.layout.native_ad_media_text_rating_layout,
+                            null
+                        ) as NativeAdView
+
+                    }
 
                     NativeAdType.IMAGE -> {
                         nativeAdView = activity.layoutInflater.inflate(
@@ -562,38 +615,6 @@ object NewAdManager {
         nativeAdView.setNativeAd(nativeAd)
     }
 
-
-    //PreLoad
-//    fun loadAdmobInterstitialAds(context2: Context) {
-//        if (App.remoteModel != null && App.remoteModel!!.mainScreenInter.showAd) {
-//            if (mainInterstitialAd == null && !isSendRequest) {
-//                val adRequest = AdRequest.Builder().build()
-//                InterstitialAd.load(
-//                    context2, App.remoteModel!!.mainScreenInter.adID, adRequest,
-//                    object : InterstitialAdLoadCallback() {
-//                        override fun onAdLoaded(interstitialAd: InterstitialAd) {
-//                            super.onAdLoaded(interstitialAd)
-//                            mainInterstitialAd = interstitialAd
-//                            isSendRequest=false
-//                            Log.e("TAG", "onAdLoaded: Ad is ready.")
-//                        }
-//
-//                        override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-//                            super.onAdFailedToLoad(loadAdError)
-//                            mainInterstitialAd = null
-//                            isSendRequest=false
-//                            Log.e("TAG", "Failed Interstitial: " + loadAdError.message)
-//                        }
-//                    })
-//                isSendRequest=true
-//                Log.i("TAG", "Main-Inter-Loaded: Request sent.")
-//            }
-//            else
-//            {
-//                Log.i("TAG", "Main-Inter-Already-Loaded: ")
-//            }
-//        }
-//    }
 
 }
 
