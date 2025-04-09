@@ -62,6 +62,8 @@ object NewAdManager {
     var perSessionAd=25
     var remoteXValue=3
 
+    private var nativeAds:NativeAd?=null
+    var nativeAdIsLoaded=false
     //Step 1: Initialize Ads
     fun initializeAds(context: Context) {
         val backgroundScope = CoroutineScope(Dispatchers.IO)
@@ -506,8 +508,7 @@ object NewAdManager {
 
 
         // Find views
-        val shimmerContainer =
-            adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+        val shimmerContainer = adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
         val nativeAdFrame = adContainer.findViewById<FrameLayout>(R.id.nativeAd)
 
         // Start shimmer animation
@@ -616,5 +617,61 @@ object NewAdManager {
     }
 
 
+    @SuppressLint("StaticFieldLeak")
+    fun loadNativeAd(
+        activity: Activity,
+        id: String,
+    ) {
+        val adLoader = AdLoader.Builder(activity, id)
+            .forNativeAd { nativeAd ->
+                nativeAds = nativeAd
+                nativeAdIsLoaded=true
+            }
+            .withAdListener(object : AdListener() {
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    nativeAds = null
+                    nativeAdIsLoaded=false
+                }
+            })
+            .build()
+
+        adLoader.loadAd(AdRequest.Builder().build())
+    }
+
+
+
+    fun showNativeAd(
+        activity: Activity,
+        adContainer: ViewGroup,
+        adType: NativeAdType,
+    ) {
+        if (nativeAds!=null) {
+            val shimmerContainer = adContainer.findViewById<ShimmerFrameLayout>(R.id.shimmer_view_container)
+            val nativeAdFrame = adContainer.findViewById<FrameLayout>(R.id.nativeAd)
+
+            shimmerContainer.startShimmer()
+
+            val nativeAdView: NativeAdView = when (adType) {
+                NativeAdType.SMALL_MEDIA -> activity.layoutInflater.inflate(R.layout.native_ad_small_media_layout, null) as NativeAdView
+                NativeAdType.LARGE_MEDIA -> activity.layoutInflater.inflate(R.layout.native_ad_large_media_layout, null) as NativeAdView
+                NativeAdType.LARGE_MEDIA_RATING_TEXT -> activity.layoutInflater.inflate(R.layout.native_ad_media_text_rating_layout, null) as NativeAdView
+                NativeAdType.IMAGE -> activity.layoutInflater.inflate(R.layout.native_ad_without_media_layout, null) as NativeAdView
+            }
+            populateNativeAdView(nativeAds!!, nativeAdView)
+            nativeAdFrame.removeAllViews()
+            nativeAdFrame.addView(nativeAdView)
+
+            shimmerContainer.stopShimmer()
+            shimmerContainer.visibility = View.GONE
+            nativeAdFrame.visibility = View.VISIBLE
+        }
+
+
+    }
+
+    fun destroyNativeAd() {
+        nativeAds?.destroy()
+        nativeAds = null
+    }
 }
 
