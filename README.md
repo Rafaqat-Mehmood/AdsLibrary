@@ -117,7 +117,7 @@ Example XML for Banner Ads Container
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"/>
 
 <!--    Ads Show Bottom then Constaints Attached Bottom-->
 <include
@@ -183,7 +183,7 @@ You need to prepare XML layout files for different native ad templates so that t
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"/>
 
 <!-- Native Ad without Media (Bottom) -->
 <include
